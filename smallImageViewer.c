@@ -230,6 +230,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				case ID_FILE_NEW:
 					SetDlgItemText(hwnd, IDC_MAIN_EDIT, "");
 				break;
+				case 0:	//this is the wParam that gets passed when Open is clicked in top menu.
 				case ID_FILE_OPEN:
 					DoFileOpen(hwnd);
 				break;
@@ -244,8 +245,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-	LPSTR lpCmdLine, int nCmdShow)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	WNDCLASSEX wc;
 	HWND hwnd;
