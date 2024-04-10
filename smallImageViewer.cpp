@@ -1,17 +1,30 @@
 #include <windows.h>
 #include "resource.h"
-
 //adapted from http://www.winprog.org/tutorial/
-
+//gdi stuff from https://www.codeproject.com/questions/842393/can-loadimage-windows-function-be-used-to-load-oth
+#include <gdiplus.h>
+#pragma comment(lib, "gdiplus.lib")
 #define WIN32_LEAN_AND_MEAN
-
 const char g_szClassName[] = "smallImageViewerClass";
-const LPCSTR file_open_save_filter = "BMP Files(*.bmp)\0 * .bmp\0All Files(*.*)\0 * .*\0";
-const LPCSTR lpstrDefExt = "bmp";
+//const LPCSTR file_open_save_filter = "BMP Files(*.bmp)\0 * .bmp\0All Files(*.*)\0 * .*\0";
+const LPCSTR file_open_save_filter = "Image Files(*.bmp,*.png,*.jpg)\0*.bmp;*.png;*.jpg\0All Files(*.*)\0*.*\0\0";
+const LPCSTR lpstrDefExt = "bmp";	//default extension when file browser is opened.
 
 HBITMAP g_hbmBall = NULL;
+ULONG_PTR gdiplusToken;
 
 #define IDC_MAIN_EDIT	101
+
+// BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, and EMF
+//HBITMAP mLoadImageFile(wchar_t* filename)
+HBITMAP mLoadImageFile(const WCHAR* filename)
+{
+	HBITMAP result = NULL;
+	Gdiplus::Bitmap bitmap(filename, false);
+	bitmap.GetHBITMAP(0, &result);
+	return result;
+}
+
 
 BOOL LoadTextFileToEdit(HWND hEdit, LPCTSTR pszFileName)
 {
@@ -90,14 +103,23 @@ BOOL SaveTextFileFromEdit(HWND hEdit, LPCTSTR pszFileName)
 	return TRUE;
 }
 
+WCHAR wstr[256];
+
 BOOL LoadImageFileToEdit(HWND hEdit, LPCTSTR pszFileName) {
 	BOOL bSuccess = FALSE;
 	//g_hbmBall = LoadImage(NULL, "C:\\ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	g_hbmBall = LoadImage(NULL, pszFileName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	if (g_hbmBall == NULL)
+	//g_hbmBall = (HBITMAP)LoadImage(NULL, pszFileName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+
+//	int wchars_num = MultiByteToWideChar(CP_UTF8, 0, pszFileName, -1, NULL, 0);
+//	WCHAR* wstr = new WCHAR[wchars_num];
+//	MultiByteToWideChar(CP_UTF8, 0, pszFileName, -1, wstr, wchars_num);
+	MultiByteToWideChar(CP_UTF8, 0, pszFileName, -1, wstr, 256);
+
+	g_hbmBall = mLoadImageFile(wstr);
+	if (g_hbmBall == NULL) {
+		MessageBox(hEdit, "Could not load Image!", "Error", MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
-//		MessageBox(hwnd, "Could not load IDB_BALL!", "Error", MB_OK | MB_ICONEXCLAMATION);
-//	MessageBox(hEdit, "asdf", "info", MB_OK);
+	}
 	InvalidateRect(hEdit, NULL, TRUE);
 	UpdateWindow(hEdit);
 	return bSuccess;
@@ -160,6 +182,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		case WM_CREATE:
 		{
+			Gdiplus::GdiplusStartupInput gdiplusStartupInput;			
+			Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 			g_hbmBall = NULL;
 			/*
 			g_hbmBall = LoadImage(NULL, "C:\\ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -294,5 +318,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		TranslateMessage(&Msg);
 		DispatchMessage(&Msg);
 	}
+	Gdiplus::GdiplusShutdown(gdiplusToken);
 	return Msg.wParam;
 }

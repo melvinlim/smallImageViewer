@@ -263,7 +263,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="smallImageViewer.c" />
+    <ClCompile Include="smallImageViewer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="smallImageViewer.rc" />
