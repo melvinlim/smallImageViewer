@@ -13,7 +13,6 @@ HBITMAP g_hbmBall = NULL;
 ULONG_PTR gdiplusToken;
 
 // BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, and EMF
-//HBITMAP mLoadImageFile(wchar_t* filename)
 HBITMAP mLoadImageFile(const WCHAR* filename)
 {
 	HBITMAP result = NULL;
@@ -24,18 +23,20 @@ HBITMAP mLoadImageFile(const WCHAR* filename)
 
 WCHAR wstr[MAX_PATH];
 
-BOOL LoadImageFileToEdit(HWND hEdit, LPCTSTR pszFileName) {
+BOOL LoadImageFileToEdit(HWND hwnd, LPCTSTR pszFileName) {
 	BOOL bSuccess = FALSE;
 
 	MultiByteToWideChar(CP_UTF8, 0, pszFileName, -1, wstr, MAX_PATH);
 
 	g_hbmBall = mLoadImageFile(wstr);
 	if (g_hbmBall == NULL) {
+#ifndef DEBUG
 		while (1);
+#endif
 		return FALSE;
 	}
-	InvalidateRect(hEdit, NULL, TRUE);
-	UpdateWindow(hEdit);
+	InvalidateRect(hwnd, NULL, TRUE);
+	UpdateWindow(hwnd);
 	return bSuccess;
 }
 
@@ -154,7 +155,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if(!RegisterClassEx(&wc))
 	{
+#ifndef DEBUG
 		while (1);
+#endif
 		return 0;
 	}
 
@@ -168,7 +171,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if(hwnd == NULL)
 	{
+#ifndef DEBUG
 		while (1);
+#endif
 		return 0;
 	}
 
