@@ -31,7 +31,7 @@ BOOL LoadImageFileToEdit(HWND hEdit, LPCTSTR pszFileName) {
 
 	g_hbmBall = mLoadImageFile(wstr);
 	if (g_hbmBall == NULL) {
-		MessageBox(hEdit, "Could not load Image!", "Error", MB_OK | MB_ICONEXCLAMATION);
+		while (1);
 		return FALSE;
 	}
 	InvalidateRect(hEdit, NULL, TRUE);
@@ -154,8 +154,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if(!RegisterClassEx(&wc))
 	{
-		MessageBox(NULL, "Window Registration Failed!", "Error!",
-			MB_ICONEXCLAMATION | MB_OK);
+		while (1);
 		return 0;
 	}
 
@@ -169,8 +168,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if(hwnd == NULL)
 	{
-		MessageBox(NULL, "Window Creation Failed!", "Error!",
-			MB_ICONEXCLAMATION | MB_OK);
+		while (1);
 		return 0;
 	}
 
