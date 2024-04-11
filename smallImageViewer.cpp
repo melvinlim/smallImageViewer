@@ -118,13 +118,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				case ID_FILE_EXIT:
 					PostMessage(hwnd, WM_CLOSE, 0, 0);
 				break;
-				case ID_FILE_NEW:
-				break;
-				case 0:	//this is the wParam that gets passed when Open is clicked in top menu.
+				case ID_OPEN:
 				case ID_FILE_OPEN:
 					DoFileOpen(hwnd);
-				break;
-				case ID_FILE_SAVEAS:
 				break;
 			}
 		break;
