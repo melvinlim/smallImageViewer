@@ -66,7 +66,7 @@ void DoFileOpen(HWND hwnd)
 volatile HANDLE hFile = NULL;
 
 //https://stackoverflow.com/questions/11140483/how-to-get-list-of-files-with-a-specific-extension-in-a-given-folder
-void OpenNextImage(HWND hwnd) {
+bool OpenNextImage(HWND hwnd) {
 	WIN32_FIND_DATA dirFile;
 	ZeroMemory(&dirFile, sizeof(dirFile));
 
@@ -74,7 +74,7 @@ void OpenNextImage(HWND hwnd) {
 		//this will match all 3 letter file extensions
 		hFile = FindFirstFile("*.???", &dirFile);
 	}
-	if (hFile == INVALID_HANDLE_VALUE)	return;
+	if (hFile == INVALID_HANDLE_VALUE)	return FALSE;
 
 	do
 	{
@@ -108,12 +108,13 @@ void OpenNextImage(HWND hwnd) {
 
 			if (wcscmp(wstr0, wstr) != 0) {
 				LoadImageFileToEdit(hwnd, wstr);
-				return;
+				return TRUE;
 			}
 		}
 	} while (FindNextFile(hFile, &dirFile) != 0);
 	FindClose(hFile);
 	hFile = NULL;
+	return FALSE;
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -178,7 +179,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					DoFileOpen(hwnd);
 				break;
 				case ID_NEXT:
-					OpenNextImage(hwnd);
+					//try twice because function fails if starting from last element in directory.
+					if (!OpenNextImage(hwnd))
+						OpenNextImage(hwnd);				
 				break;
 			}
 		break;
