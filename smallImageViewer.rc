@@ -63,6 +63,7 @@ BEGIN
         MENUITEM "E&xit",                       ID_FILE_EXIT
     END
     MENUITEM "Open",                        ID_OPEN
+    MENUITEM "Next",                        ID_NEXT
 END
 
 #endif    // English (Canada) resources

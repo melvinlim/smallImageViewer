@@ -21,12 +21,14 @@ HBITMAP mLoadImageFile(const WCHAR* filename)
 	return result;
 }
 
-WCHAR wstr[MAX_PATH];
+WCHAR wstr[MAX_PATH] = { 0 };
+WCHAR wstr0[MAX_PATH] = { 0 };
 
 BOOL LoadImageFileToEdit(HWND hwnd, LPCTSTR pszFileName) {
 	BOOL bSuccess = FALSE;
 
 	MultiByteToWideChar(CP_UTF8, 0, pszFileName, -1, wstr, MAX_PATH);
+	lstrcpyW(wstr0, wstr);
 
 	g_hbmBall = mLoadImageFile(wstr);
 	if (g_hbmBall == NULL) {
@@ -58,6 +60,40 @@ void DoFileOpen(HWND hwnd)
 	if(GetOpenFileName(&ofn))
 	{
 		LoadImageFileToEdit(hwnd, szFileName);
+	}
+}
+
+//https://stackoverflow.com/questions/11140483/how-to-get-list-of-files-with-a-specific-extension-in-a-given-folder
+void OpenNextImage(HWND hwnd) {
+	WIN32_FIND_DATA dirFile;
+	HANDLE hFile;
+
+	if ((hFile = FindFirstFile("*.png", &dirFile)) != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			if (!strcmp(dirFile.cFileName, ".")) continue;
+			if (!strcmp(dirFile.cFileName, "..")) continue;
+			/*
+			if (gIgnoreHidden)
+			{
+				if (dirFile.attrib & _A_HIDDEN) continue;
+				if (dirFile.name[0] == '.') continue;
+			}
+			*/
+
+			char szFileName[MAX_PATH] = "";
+			GetFullPathName(dirFile.cFileName, MAX_PATH, szFileName, 0);
+			MultiByteToWideChar(CP_UTF8, 0, szFileName, -1, wstr, MAX_PATH);
+
+			if(wcscmp(wstr, wstr0)!=0){
+				LoadImageFileToEdit(hwnd, dirFile.cFileName);
+				FindClose(hFile);
+				return;
+			}
+
+		} while (FindNextFile(hFile, &dirFile) != 0);
+		FindClose(hFile);
 	}
 }
 
@@ -122,6 +158,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				case ID_FILE_OPEN:
 					DoFileOpen(hwnd);
 				break;
+				case ID_NEXT:
+					OpenNextImage(hwnd);
+				break;
 			}
 		break;
 		default:
@@ -162,7 +201,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		g_szClassName,
 		"small Image Viewer",
 		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, 480, 320,
+		CW_USEDEFAULT, CW_USEDEFAULT, 640, 480,
 		NULL, NULL, hInstance, NULL);
 
 	if(hwnd == NULL)
