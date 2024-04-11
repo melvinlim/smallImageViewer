@@ -12,8 +12,6 @@ const LPCSTR lpstrDefExt = "bmp";	//default extension when file browser is opene
 HBITMAP g_hbmBall = NULL;
 ULONG_PTR gdiplusToken;
 
-#define IDC_MAIN_EDIT	101
-
 // BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, and EMF
 //HBITMAP mLoadImageFile(wchar_t* filename)
 HBITMAP mLoadImageFile(const WCHAR* filename)
@@ -58,29 +56,7 @@ void DoFileOpen(HWND hwnd)
 
 	if(GetOpenFileName(&ofn))
 	{
-		HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
-		LoadImageFileToEdit(hEdit, szFileName);
-	}
-}
-
-void DoFileSave(HWND hwnd)
-{
-	OPENFILENAME ofn;
-	char szFileName[MAX_PATH] = "";
-
-	ZeroMemory(&ofn, sizeof(ofn));
-
-	ofn.lStructSize = sizeof(OPENFILENAME);
-	ofn.hwndOwner = hwnd;
-	ofn.lpstrFilter = file_open_save_filter;
-	ofn.lpstrFile = szFileName;
-	ofn.nMaxFile = MAX_PATH;
-	ofn.lpstrDefExt = lpstrDefExt;
-	ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-
-	if(GetSaveFileName(&ofn))
-	{
-		HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
+		LoadImageFileToEdit(hwnd, szFileName);
 	}
 }
 
@@ -142,14 +118,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					PostMessage(hwnd, WM_CLOSE, 0, 0);
 				break;
 				case ID_FILE_NEW:
-					SetDlgItemText(hwnd, IDC_MAIN_EDIT, "");
 				break;
 				case 0:	//this is the wParam that gets passed when Open is clicked in top menu.
 				case ID_FILE_OPEN:
 					DoFileOpen(hwnd);
 				break;
 				case ID_FILE_SAVEAS:
-					DoFileSave(hwnd);
 				break;
 			}
 		break;
