@@ -26,9 +26,9 @@ WCHAR wstr0[MAX_PATH] = { 0 };
 
 BOOL LoadImageFileToEdit(HWND hwnd, LPCTSTR pszFileName) {
 	BOOL bSuccess = FALSE;
+	if (pszFileName == "")	return FALSE;
 
 	MultiByteToWideChar(CP_UTF8, 0, pszFileName, -1, wstr, MAX_PATH);
-	lstrcpyW(wstr0, wstr);
 
 	g_hbmBall = mLoadImageFile(wstr);
 	if (g_hbmBall == NULL) {
@@ -63,15 +63,21 @@ void DoFileOpen(HWND hwnd)
 	}
 }
 
+volatile HANDLE hFile = NULL;
+
 //https://stackoverflow.com/questions/11140483/how-to-get-list-of-files-with-a-specific-extension-in-a-given-folder
 void OpenNextImage(HWND hwnd) {
 	WIN32_FIND_DATA dirFile;
-	HANDLE hFile;
+	ZeroMemory(&dirFile, sizeof(dirFile));
 
-	if ((hFile = FindFirstFile("*.png", &dirFile)) != INVALID_HANDLE_VALUE)
-	{
+	if ((hFile == NULL)||(hFile == INVALID_HANDLE_VALUE)) {
+		hFile = FindFirstFile("*.png", &dirFile);
+	}
+	if (hFile == INVALID_HANDLE_VALUE)	return;
+
 		do
 		{
+			if (!strcmp(dirFile.cFileName, "")) continue;
 			if (!strcmp(dirFile.cFileName, ".")) continue;
 			if (!strcmp(dirFile.cFileName, "..")) continue;
 			/*
@@ -86,15 +92,15 @@ void OpenNextImage(HWND hwnd) {
 			GetFullPathName(dirFile.cFileName, MAX_PATH, szFileName, 0);
 			MultiByteToWideChar(CP_UTF8, 0, szFileName, -1, wstr, MAX_PATH);
 
-			if(wcscmp(wstr, wstr0)!=0){
+			if(wcscmp(wstr0, wstr)!=0){
+				lstrcpyW(wstr0, wstr);
 				LoadImageFileToEdit(hwnd, dirFile.cFileName);
-				FindClose(hFile);
 				return;
 			}
 
 		} while (FindNextFile(hFile, &dirFile) != 0);
 		FindClose(hFile);
-	}
+		hFile = NULL;
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -221,5 +227,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		DispatchMessage(&Msg);
 	}
 	Gdiplus::GdiplusShutdown(gdiplusToken);
+	if(hFile)
+		FindClose(hFile);
 	return (int)Msg.wParam;
 }
