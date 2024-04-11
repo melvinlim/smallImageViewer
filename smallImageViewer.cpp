@@ -176,6 +176,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				break;
 				case ID_OPEN:
 				case ID_FILE_OPEN:
+					hFile = NULL;
 					DoFileOpen(hwnd);
 				break;
 				case ID_NEXT:
