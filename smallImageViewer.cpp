@@ -24,16 +24,15 @@ HBITMAP mLoadImageFile(const WCHAR* filename)
 WCHAR wstr[MAX_PATH] = { 0 };
 WCHAR wstr0[MAX_PATH] = { 0 };
 
-BOOL LoadImageFileToEdit(HWND hwnd, LPCTSTR pszFileName) {
+BOOL LoadImageFileToEdit(HWND hwnd, WCHAR* wstr) {
 	BOOL bSuccess = FALSE;
-	if (pszFileName == "")	return FALSE;
-
-	MultiByteToWideChar(CP_UTF8, 0, pszFileName, -1, wstr, MAX_PATH);
+	if (lstrlenW(wstr) == 0)return FALSE;
+	lstrcpyW(wstr0, wstr);
 
 	g_hbmBall = mLoadImageFile(wstr);
 	if (g_hbmBall == NULL) {
 #ifndef DEBUG
-		while (1);
+		//while (1);
 #endif
 		return FALSE;
 	}
@@ -59,7 +58,8 @@ void DoFileOpen(HWND hwnd)
 
 	if(GetOpenFileName(&ofn))
 	{
-		LoadImageFileToEdit(hwnd, szFileName);
+		MultiByteToWideChar(CP_UTF8, 0, szFileName, -1, wstr, MAX_PATH);
+		LoadImageFileToEdit(hwnd, wstr);
 	}
 }
 
@@ -71,36 +71,49 @@ void OpenNextImage(HWND hwnd) {
 	ZeroMemory(&dirFile, sizeof(dirFile));
 
 	if ((hFile == NULL)||(hFile == INVALID_HANDLE_VALUE)) {
-		hFile = FindFirstFile("*.png", &dirFile);
+		//this will match all 3 letter file extensions
+		hFile = FindFirstFile("*.???", &dirFile);
 	}
 	if (hFile == INVALID_HANDLE_VALUE)	return;
 
-		do
+	do
+	{
+		if (!strcmp(dirFile.cFileName, "")) continue;
+		if (!strcmp(dirFile.cFileName, ".")) continue;
+		if (!strcmp(dirFile.cFileName, "..")) continue;
+		/*
+		if (gIgnoreHidden)
 		{
-			if (!strcmp(dirFile.cFileName, "")) continue;
-			if (!strcmp(dirFile.cFileName, ".")) continue;
-			if (!strcmp(dirFile.cFileName, "..")) continue;
-			/*
-			if (gIgnoreHidden)
-			{
-				if (dirFile.attrib & _A_HIDDEN) continue;
-				if (dirFile.name[0] == '.') continue;
-			}
-			*/
+			if (dirFile.attrib & _A_HIDDEN) continue;
+			if (dirFile.name[0] == '.') continue;
+		}
+		*/
+
+		char* cptr = strrchr(dirFile.cFileName, '.');
+		if (cptr == 0)	continue;
+		if (cptr[1] == 0) continue;
+		if (cptr[2] == 0) continue;
+		if (cptr[3] == 0) continue;
+		cptr[1] = tolower(cptr[1]);
+		cptr[2] = tolower(cptr[2]);
+		cptr[3] = tolower(cptr[3]);
+		if ((strcmp(cptr, ".png") == 0) ||
+			(strcmp(cptr, ".jpg") == 0) ||
+			(strcmp(cptr, ".bmp") == 0) ||
+			(strcmp(cptr, ".gif") == 0)) {
 
 			char szFileName[MAX_PATH] = "";
 			GetFullPathName(dirFile.cFileName, MAX_PATH, szFileName, 0);
 			MultiByteToWideChar(CP_UTF8, 0, szFileName, -1, wstr, MAX_PATH);
 
-			if(wcscmp(wstr0, wstr)!=0){
-				lstrcpyW(wstr0, wstr);
-				LoadImageFileToEdit(hwnd, dirFile.cFileName);
+			if (wcscmp(wstr0, wstr) != 0) {
+				LoadImageFileToEdit(hwnd, wstr);
 				return;
 			}
-
-		} while (FindNextFile(hFile, &dirFile) != 0);
-		FindClose(hFile);
-		hFile = NULL;
+		}
+	} while (FindNextFile(hFile, &dirFile) != 0);
+	FindClose(hFile);
+	hFile = NULL;
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
